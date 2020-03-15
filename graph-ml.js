@@ -10,7 +10,7 @@ class GNode {
    * @param {Array<*>} [src.c] Children array
    */
   constructor(src = {}) {
-    this.tag = src.t || "div";
+    this.tag = src.t || 'div';
     this.styles = src.s || {};
     this.params = src.p || {};
     this.attributes = src.a || {};
@@ -37,17 +37,17 @@ function render(template) {
         })
       );
     } else if (node.constructor === String) {
-      let textEl = document.createElement("span");
+      let textEl = document.createElement('span');
       textEl.textContent = node;
       targetNode.appendChild(textEl);
     } else if (node.constructor === Object) {
       let elDesc = new GNode(node);
       let element;
-      let svgPrefix = "svg:";
+      let svgPrefix = 'svg:';
       if (elDesc.tag.indexOf(svgPrefix) === 0) {
         element = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          elDesc.tag.replace(svgPrefix, "")
+          'http://www.w3.org/2000/svg',
+          elDesc.tag.replace(svgPrefix, '')
         );
       } else {
         element = document.createElement(elDesc.tag);
@@ -65,7 +65,7 @@ function render(template) {
         element.addEventListener(eventName, elDesc.handlers[eventName]);
       }
       if (node.constructor === String) {
-        element.setAttribute(node, "");
+        element.setAttribute(node, '');
       }
       targetNode.appendChild(element);
       elDesc.children.forEach(child => {
