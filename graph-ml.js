@@ -31,15 +31,9 @@ function render(template) {
    */
   let renderNode = (node, targetNode) => {
     if (node.constructor === DocumentFragment) {
-      targetNode.appendChild(
-        node.cloneNode({
-          deep: true
-        })
-      );
+      targetNode.appendChild(node);
     } else if (node.constructor === String) {
-      let textEl = document.createElement('span');
-      textEl.textContent = node;
-      targetNode.appendChild(textEl);
+      targetNode.appendChild(document.createTextNode(node));
     } else if (node.constructor === Object) {
       let elDesc = new GNode(node);
       let element;
@@ -47,13 +41,35 @@ function render(template) {
       if (elDesc.tag.indexOf(svgPrefix) === 0) {
         element = document.createElementNS(
           'http://www.w3.org/2000/svg',
-          elDesc.tag.replace(svgPrefix, '')
+          elDesc.tag.replace(svgPrefix, ''),
         );
       } else {
         element = document.createElement(elDesc.tag);
       }
+      let shadowStyleEl;
       for (let styleProp in elDesc.styles) {
-        element.style[styleProp] = elDesc.styles[styleProp];
+        let value = elDesc.styles[styleProp];
+        if (value.constructor === Object && styleProp.indexOf(':') === 0) {
+          if (!shadowStyleEl) {
+            element.attachShadow({
+              mode: 'open',
+            });
+            shadowStyleEl = document.createElement('style');
+            element.shadowRoot.appendChild(shadowStyleEl);
+            element.shadowRoot.appendChild(document.createElement('slot'));
+          }
+          let rules = [];
+          for (let sProp in value) {
+            rules.push(`${sProp}:${value[sProp]}!important;`);
+          }
+          if (styleProp.indexOf('::') === 0) {
+            shadowStyleEl.textContent += `:host${styleProp}{${rules.join('')}}`;
+          } else {
+            shadowStyleEl.textContent += `:host(${styleProp}){${rules.join('')}}`;
+          }
+        } else {
+          element.style[styleProp] = value;
+        }
       }
       for (let param in elDesc.params) {
         element[param] = elDesc.params[param];
