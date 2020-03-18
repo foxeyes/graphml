@@ -49,7 +49,7 @@ function render(template) {
       let shadowStyleEl;
       for (let styleProp in elDesc.styles) {
         let value = elDesc.styles[styleProp];
-        if (value.constructor === Object && styleProp.indexOf(':') === 0) {
+        if (value.constructor === Object) {
           if (!shadowStyleEl) {
             element.attachShadow({
               mode: 'open',
@@ -97,5 +97,5 @@ function render(template) {
 }
 
 export const GraphMl = {
-  render: render
+  render: render,
 };
