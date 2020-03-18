@@ -19,6 +19,10 @@ class GNode {
   }
 }
 
+const toKebab = function(str) {
+  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+};
+
 /**
  *
  * @param {Array<{} | String | DocumentFragment>} template
@@ -60,7 +64,7 @@ function render(template) {
           }
           let rules = [];
           for (let sProp in value) {
-            rules.push(`${sProp}:${value[sProp]}!important;`);
+            rules.push(`${toKebab(sProp)}:${value[sProp]}!important;`);
           }
           if (styleProp.indexOf('::') === 0) {
             shadowStyleEl.textContent += `:host${styleProp}{${rules.join('')}}`;
