@@ -8,6 +8,7 @@ class GNode {
    * @param {Object} [src.a] Attributes
    * @param {Object} [src.h] Handlers
    * @param {Array<*>} [src.c] Children array
+   * @param {Function} [src.f] Callback function
    */
   constructor(src = {}) {
     this.tag = src.t || 'div';
@@ -16,6 +17,7 @@ class GNode {
     this.attributes = src.a || {};
     this.handlers = src.h || {};
     this.children = src.c || [];
+    this.fCallback = src.f || null;
   }
 }
 
@@ -91,6 +93,9 @@ function render(template) {
       elDesc.children.forEach(child => {
         renderNode(child, element);
       });
+      if (elDesc.fCallback && elDesc.fCallback.constructor === Function) {
+        elDesc.fCallback(element);
+      }
     }
   };
   let fragment = document.createDocumentFragment();
