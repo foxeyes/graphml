@@ -9,6 +9,7 @@ class GNode {
    * @param {Object} [src.h] Handlers
    * @param {Array<*>} [src.c] Children array
    * @param {Function} [src.f] Callback function
+   * @param {Object.<string, function>} [src.l] Element lifecycle
    */
   constructor(src = {}) {
     this.tag = src.t || 'div';
@@ -18,12 +19,29 @@ class GNode {
     this.handlers = src.h || {};
     this.children = src.c || [];
     this.fCallback = src.f || null;
+    this.lifecycle = src.l || {};
   }
 }
+
+class GLifeCycleEmitter extends HTMLElement {}
 
 const toKebab = function(str) {
   return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 };
+
+const prepRoot = function(element) {
+  if (!element.shadowRoot) {
+    element.attachShadow({
+      mode: 'open',
+    });
+  }
+}
+
+const prepSlot = function(element) {
+  if (!element.shadowRoot.querySelector('slot')) {
+    element.shadowRoot.appendChild(document.createElement('slot'));
+  }
+}
 
 /**
  *
@@ -56,14 +74,12 @@ function render(template) {
       for (let styleProp in elDesc.styles) {
         let value = elDesc.styles[styleProp];
         if (value.constructor === Object) {
+          prepRoot(element);
           if (!shadowStyleEl) {
-            element.attachShadow({
-              mode: 'open',
-            });
             shadowStyleEl = document.createElement('style');
             element.shadowRoot.appendChild(shadowStyleEl);
-            element.shadowRoot.appendChild(document.createElement('slot'));
           }
+          prepSlot(element);
           let rules = [];
           for (let sProp in value) {
             rules.push(`${toKebab(sProp)}:${value[sProp]}!important;`);
@@ -95,6 +111,29 @@ function render(template) {
       });
       if (elDesc.fCallback && elDesc.fCallback.constructor === Function) {
         elDesc.fCallback(element);
+      }
+      if (elDesc.lifecycle) {
+        let wcName = 'g-lifecycle-emmitter';
+        if (!window.customElements.get(wcName)) {
+          window.customElements.define(wcName, GLifeCycleEmitter);
+        }
+        prepRoot(element);
+        prepSlot(element);
+        let emitter = new GLifeCycleEmitter();
+        if (elDesc.lifecycle.connected && elDesc.lifecycle.connected.constructor === Function) {
+          // @ts-ignore
+          emitter.connectedCallback = () => {
+            elDesc.lifecycle.connected();
+          }
+        }
+        if (elDesc.lifecycle.disconnected && elDesc.lifecycle.disconnected.constructor === Function) {
+          // @ts-ignore
+          emitter.disconnectedCallback = () => {
+            elDesc.lifecycle.disconnected();
+          }
+        }
+        emitter.style.display = 'none';
+        element.shadowRoot.appendChild(emitter);
       }
     }
   };
