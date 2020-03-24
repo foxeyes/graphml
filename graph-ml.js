@@ -23,7 +23,20 @@ class GNode {
   }
 }
 
-class GLifeCycleEmitter extends HTMLElement {}
+const gLifecycleKey = '__g-lifecycle-key__';
+
+class GLifeCycleEmitter extends HTMLElement {
+  connectedCallback() {
+    // @ts-ignore
+    let host = this.parentNode.host;
+    host[gLifecycleKey] && host[gLifecycleKey].connected && host[gLifecycleKey].connected(host);
+  }
+  disconnectedCallback() {
+    // @ts-ignore
+    let host = this.parentNode.host;
+    host[gLifecycleKey] && host[gLifecycleKey].disconnected && host[gLifecycleKey].disconnected(host);
+  }
+}
 
 const toKebab = function(str) {
   return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
@@ -112,7 +125,8 @@ function render(template) {
       if (elDesc.fCallback && elDesc.fCallback.constructor === Function) {
         elDesc.fCallback(element);
       }
-      if (elDesc.lifecycle) {
+      if (elDesc.lifecycle && Object.keys(elDesc.lifecycle).length) {
+        element[gLifecycleKey] = elDesc.lifecycle;
         let wcName = 'g-lifecycle-emmitter';
         if (!window.customElements.get(wcName)) {
           window.customElements.define(wcName, GLifeCycleEmitter);
@@ -120,18 +134,6 @@ function render(template) {
         prepRoot(element);
         prepSlot(element);
         let emitter = new GLifeCycleEmitter();
-        if (elDesc.lifecycle.connected && elDesc.lifecycle.connected.constructor === Function) {
-          // @ts-ignore
-          emitter.connectedCallback = () => {
-            elDesc.lifecycle.connected();
-          }
-        }
-        if (elDesc.lifecycle.disconnected && elDesc.lifecycle.disconnected.constructor === Function) {
-          // @ts-ignore
-          emitter.disconnectedCallback = () => {
-            elDesc.lifecycle.disconnected();
-          }
-        }
         emitter.style.display = 'none';
         element.shadowRoot.appendChild(emitter);
       }
