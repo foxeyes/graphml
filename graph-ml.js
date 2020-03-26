@@ -115,9 +115,6 @@ function render(template) {
       for (let eventName in elDesc.handlers) {
         element.addEventListener(eventName, elDesc.handlers[eventName]);
       }
-      if (node.constructor === String) {
-        element.setAttribute(node, '');
-      }
       targetNode.appendChild(element);
       elDesc.children.forEach(child => {
         renderNode(child, element);
