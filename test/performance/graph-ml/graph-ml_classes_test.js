@@ -1,6 +1,7 @@
+import {GraphMl} from '../../../graph-ml.js'
 const SIZE = 500
 const STARTED = performance.now()
-const px = 'uploadcare_'
+const px = 'uploadcare_';
 const STYLES = /*css*/ `
 .${px}user-card {
   display:inline-grid;
@@ -25,12 +26,30 @@ const STYLES = /*css*/ `
   padding:40px;
 }`
 const userCard = function(name, secondName, age) {
-  return /*html*/ `<div class="${px}user-card" tabindex="0"><div>Name: ${name}</div><div>Second Name: ${secondName}</div><div>Age: ${age}</div></div>`
+  return GraphMl.render([
+    {
+      a:{tabindex:0,class:px+'user-card'},
+      c:[
+        {c:['Name: '+name]},
+        {c:['Second Name: '+secondName]},
+        {c:['Age: '+age]}
+      ]
+    }
+  ])
 }
 window.onload = () => {
-  document.body.innerHTML = /*html*/ `<style>${STYLES}</style><div class="${px}container">${[...Array(SIZE)].map(() => userCard('John','Snow',24)).join('')}</div>`
+  document.body.appendChild(GraphMl.render([
+    {
+      t:'style',
+      c:[STYLES]
+    },
+    {
+      a:{class: px + 'container'},
+      c:[...Array(SIZE)].map(() => userCard('John','Snow',24))
+    }
+  ]))
   // @ts-ignore
   window.requestIdleCallback(() => {
-    console.log(performance.now() - STARTED)
+    console.log(performance.now()-STARTED)
   })
 }
