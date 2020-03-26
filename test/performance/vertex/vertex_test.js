@@ -38,8 +38,11 @@ window.onload = () => {
       }
     }
   }))
+  window.requestAnimationFrame(()=>{
+    console.log('ANIMATION: '+(performance.now()-STARTED))
+  })
   // @ts-ignore
-  window.requestIdleCallback(() => {
-    console.log(performance.now() - STARTED)
+  window.requestIdleCallback(()=>{
+    console.log('IDLE: '+(performance.now()-STARTED))
   })
 }

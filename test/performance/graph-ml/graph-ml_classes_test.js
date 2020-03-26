@@ -48,8 +48,11 @@ window.onload = () => {
       c:[...Array(SIZE)].map(() => userCard('John','Snow',24))
     }
   ]))
+  window.requestAnimationFrame(() => {
+    console.log('ANIMATION: '+(performance.now()-STARTED))
+  })
   // @ts-ignore
   window.requestIdleCallback(() => {
-    console.log(performance.now()-STARTED)
+    console.log('IDLE: '+(performance.now()-STARTED))
   })
 }

@@ -29,8 +29,11 @@ const userCard = function(name, secondName, age) {
 }
 window.onload = () => {
   document.body.innerHTML = /*html*/ `<style>${STYLES}</style><div class="${px}container">${[...Array(SIZE)].map(() => userCard('John','Snow',24)).join('')}</div>`
+  window.requestAnimationFrame(()=>{
+    console.log('ANIMATION: '+(performance.now()-STARTED))
+  })
   // @ts-ignore
-  window.requestIdleCallback(() => {
-    console.log(performance.now() - STARTED)
+  window.requestIdleCallback(()=>{
+    console.log('IDLE: '+(performance.now()-STARTED))
   })
 }
