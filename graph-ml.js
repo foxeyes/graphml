@@ -1,30 +1,4 @@
-class GNode {
-  /**
-   *
-   * @param {Object} [src]
-   * @param {String} [src.t] Tag
-   * @param {Object} [src.s] Styles
-   * @param {Object} [src.p] Properties
-   * @param {Object} [src.a] Attributes
-   * @param {Object} [src.h] Handlers
-   * @param {Array<*>} [src.c] Children array
-   * @param {Function} [src.f] Callback function
-   * @param {Object.<string, function>} [src.l] Element lifecycle
-   */
-  constructor(src = {}) {
-    this.tag = src.t || 'div';
-    this.styles = src.s || {};
-    this.params = src.p || {};
-    this.attributes = src.a || {};
-    this.handlers = src.h || {};
-    this.children = src.c || [];
-    this.fCallback = src.f || null;
-    this.lifecycle = src.l || {};
-  }
-}
-
 const gLifecycleKey = '__g-lifecycle-key__';
-
 class GLifeCycleEmitter extends HTMLElement {
   connectedCallback() {
     // @ts-ignore
@@ -37,11 +11,9 @@ class GLifeCycleEmitter extends HTMLElement {
     host[gLifecycleKey] && host[gLifecycleKey].disconnected && host[gLifecycleKey].disconnected(host);
   }
 }
-
 const toKebab = function(str) {
   return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 };
-
 const prepRoot = function(element) {
   if (!element.shadowRoot) {
     element.attachShadow({
@@ -49,18 +21,16 @@ const prepRoot = function(element) {
     });
   }
 }
-
 const prepSlot = function(element) {
   if (!element.shadowRoot.querySelector('slot')) {
     element.shadowRoot.appendChild(document.createElement('slot'));
   }
 }
-
 /**
  *
  * @param {Array<{} | String | DocumentFragment>} template
  */
-function render(template) {
+function renderStruct(template) {
   /**
    *
    * @param {*} node
@@ -72,58 +42,58 @@ function render(template) {
     } else if (node.constructor === String) {
       targetNode.appendChild(document.createTextNode(node));
     } else if (node.constructor === Object) {
-      let elDesc = new GNode(node);
-      let element;
-      let svgPrefix = 'svg:';
-      if (elDesc.tag.indexOf(svgPrefix) === 0) {
-        element = document.createElementNS(
-          'http://www.w3.org/2000/svg',
-          elDesc.tag.replace(svgPrefix, ''),
-        );
-      } else {
-        element = document.createElement(elDesc.tag);
-      }
-      let shadowStyleEl;
-      for (let styleProp in elDesc.styles) {
-        let value = elDesc.styles[styleProp];
-        if (value.constructor === Object) {
-          prepRoot(element);
-          if (!shadowStyleEl) {
-            shadowStyleEl = document.createElement('style');
-            element.shadowRoot.appendChild(shadowStyleEl);
-          }
-          prepSlot(element);
-          let rules = [];
-          for (let sProp in value) {
-            rules.push(`${toKebab(sProp)}:${value[sProp]}!important;`);
-          }
-          if (styleProp.indexOf('::') === 0) {
-            shadowStyleEl.textContent += `:host${styleProp}{${rules.join('')}}`;
+      let element = document.createElement(node.t||'div');
+      if (node.s) {
+        let shadowStyleEl;
+        for (let styleProp in node.s) {
+          let value=node.s[styleProp];
+          if (value.constructor === Object) {
+            prepRoot(element);
+            if (!shadowStyleEl) {
+              shadowStyleEl=document.createElement('style');
+              element.shadowRoot.appendChild(shadowStyleEl);
+            }
+            prepSlot(element);
+            let rules=[];
+            for (let sProp in value) {
+              rules.push(`${toKebab(sProp)}:${value[sProp]}!important;`);
+            }
+            if (styleProp.indexOf('::') === 0) {
+              shadowStyleEl.textContent+=`:host${styleProp}{${rules.join('')}}`;
+            } else {
+              shadowStyleEl.textContent+=`:host(${styleProp}){${rules.join('')}}`;
+            }
           } else {
-            shadowStyleEl.textContent += `:host(${styleProp}){${rules.join('')}}`;
+            element.style[styleProp] = value;
           }
-        } else {
-          element.style[styleProp] = value;
         }
       }
-      for (let param in elDesc.params) {
-        element[param] = elDesc.params[param];
+      if (node.p) {
+        for (let param in node.p) {
+          element[param] = node.p[param];
+        }
       }
-      for (let attr in elDesc.attributes) {
-        element.setAttribute(attr, elDesc.attributes[attr]);
+      if (node.a) {
+        for (let attr in node.a) {
+          element.setAttribute(attr, node.a[attr]);
+        }
       }
-      for (let eventName in elDesc.handlers) {
-        element.addEventListener(eventName, elDesc.handlers[eventName]);
+      if (node.h) {
+        for (let eventName in node.h) {
+          element.addEventListener(eventName, node.h[eventName]);
+        }
       }
       targetNode.appendChild(element);
-      elDesc.children.forEach(child => {
-        renderNode(child, element);
-      });
-      if (elDesc.fCallback && elDesc.fCallback.constructor === Function) {
-        elDesc.fCallback(element);
+      if (node.c) {
+        node.c.forEach(child => {
+          renderNode(child, element);
+        });
       }
-      if (elDesc.lifecycle && Object.keys(elDesc.lifecycle).length) {
-        element[gLifecycleKey] = elDesc.lifecycle;
+      if (node.f) {
+        node.f(element);
+      }
+      if (node.l && Object.keys(node.l).length) {
+        element[gLifecycleKey] = node.l;
         let wcName = 'g-lifecycle-emmitter';
         if (!window.customElements.get(wcName)) {
           window.customElements.define(wcName, GLifeCycleEmitter);
@@ -142,7 +112,25 @@ function render(template) {
   });
   return fragment;
 }
-
-export const GraphMl = {
-  render: render,
-};
+/**
+ *
+ * @param {String} tplStr
+ * @param {Object.<string, Function>} [mapper]
+ */
+function renderLit(tplStr, mapper) {
+  let tpl=document.createElement('template');
+  tpl.innerHTML = tplStr;
+  let fragment = tpl.content.cloneNode(true);
+  if (mapper) {
+    for (let id in mapper) {
+      // @ts-ignore
+      let el=fragment.querySelector('['+id+']');
+      if (el) {
+        mapper[id](el);
+        el.removeAttribute(id);
+      }
+    }
+  }
+  return fragment;
+}
+export {renderStruct, renderLit}

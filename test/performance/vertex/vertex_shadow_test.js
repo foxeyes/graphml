@@ -1,4 +1,4 @@
-import {Vertex} from '../../../vertex.js'
+import {renderLit} from '../../../graph-ml.js'
 const SIZE = 500
 const STARTED = performance.now()
 const prepShadow = function(el, css) {
@@ -12,7 +12,7 @@ const prepShadow = function(el, css) {
 }
 const userCard = function(name, secondName, age) {
   let tpl = /*html*/ `<div tabindex="0" shadow-css><div>Name: ${name}</div><div>Second Name: ${secondName}</div><div>Age: ${age}</div></div>`;
-  return Vertex.render(tpl, {
+  return renderLit(tpl, {
     'shadow-css': (el) => {
       prepShadow(el, /*css*/ `
         :host {
@@ -36,7 +36,7 @@ const userCard = function(name, secondName, age) {
 }
 window.onload = () => {
   let tpl = /*html*/ `<div insertion-point></div>`
-  document.body.appendChild(Vertex.render(tpl, {
+  document.body.appendChild(renderLit(tpl, {
     'insertion-point': (el) => {
       prepShadow(el, /*css*/ `
         :host {

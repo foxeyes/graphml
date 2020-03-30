@@ -1,4 +1,4 @@
-import {Vertex} from '../../../vertex.js'
+import {renderLit} from '../../../graph-ml.js'
 const SIZE = 500
 const STARTED = performance.now()
 const px = 'uploadcare_'
@@ -27,11 +27,11 @@ const STYLES = /*css*/ `
 }`
 const userCard = function(name, secondName, age) {
   let tpl = /*html*/ `<div class="${px}user-card" tabindex="0"><div>Name: ${name}</div><div>Second Name: ${secondName}</div><div>Age: ${age}</div></div>`;
-  return Vertex.render(tpl)
+  return renderLit(tpl)
 }
 window.onload = () => {
   let tpl = /*html*/ `<style>${STYLES}</style><div class="${px}container" insert-to></div>`
-  document.body.appendChild(Vertex.render(tpl, {
+  document.body.appendChild(renderLit(tpl, {
     'insert-to': (el) => {
       for (let i = 0; i < SIZE; i++) {
         el.appendChild(userCard('John', 'Snow', 24))

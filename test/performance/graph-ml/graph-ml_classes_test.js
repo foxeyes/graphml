@@ -1,4 +1,4 @@
-import {GraphMl} from '../../../graph-ml.js'
+import {renderStruct} from '../../../graph-ml.js'
 const SIZE = 500
 const STARTED = performance.now()
 const px = 'uploadcare_';
@@ -26,7 +26,7 @@ const STYLES = /*css*/ `
   padding:40px;
 }`
 const userCard = function(name, secondName, age) {
-  return GraphMl.render([
+  return renderStruct([
     {
       a:{tabindex:0,class:px+'user-card'},
       c:[
@@ -38,7 +38,7 @@ const userCard = function(name, secondName, age) {
   ])
 }
 window.onload = () => {
-  document.body.appendChild(GraphMl.render([
+  document.body.appendChild(renderStruct([
     {
       t:'style',
       c:[STYLES]

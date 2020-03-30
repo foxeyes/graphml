@@ -1,8 +1,8 @@
-import {GraphMl} from '../../../graph-ml.js'
+import {renderStruct} from '../../../graph-ml.js'
 const SIZE = 500
 const STARTED = performance.now()
 const userCard = function(name, secondName, age) {
-  return GraphMl.render([
+  return renderStruct([
     {
       s:{
         display:'inline-grid',
@@ -29,7 +29,7 @@ const userCard = function(name, secondName, age) {
   ])
 }
 window.onload = () => {
-  document.body.appendChild(GraphMl.render([
+  document.body.appendChild(renderStruct([
     {
       s:{
         display:'grid',
