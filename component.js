@@ -9,20 +9,24 @@ class Component extends HTMLElement {
   }
   set localState(scheme) {
     if (!this._localState) {
-      this._localState=StateMngr.registerLocal(this, scheme)
+      this._localState = StateMngr.registerLocal(this, scheme)
     }
   }
   get localState() {
     return this._localState
   }
   localSub(path, callback) {
-    this._subscriptions.add(this._localState.sub(path, callback))
+    let sub = this._localState.sub(path, callback)
+    this._subscriptions.add(sub)
+    return sub
   }
   localPub(path, val) {
     this._localState.pub(path, val)
   }
   globalSub(path, callback) {
-    this._subscriptions.add(StateMngr.global.sub(path, callback))
+    let sub = StateMngr.global.sub(path, callback)
+    this._subscriptions.add(sub)
+    return sub
   }
   globalPub(path, val) {
     StateMngr.global.pub(path, val)
@@ -36,6 +40,7 @@ class Component extends HTMLElement {
       sub.remove()
     });
     this._subscriptions = null
+    this._localState.remove()
   }
   /**
    * @param {String} name
