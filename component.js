@@ -7,7 +7,7 @@ class Component extends HTMLElement {
   static set template(tpl) {
     this._template = tpl
   }
-  set localState(scheme) {
+  setLocalStateScheme(scheme) {
     if (!this._localState) {
       this._localState = StateMngr.registerLocal(this, scheme)
     }
@@ -32,7 +32,7 @@ class Component extends HTMLElement {
     StateMngr.global.pub(path, val)
   }
   constructor() {
-    super();
+    super()
     this._subscriptions = new Set()
   }
   disconnectedCallback() {
@@ -40,7 +40,9 @@ class Component extends HTMLElement {
       sub.remove()
     });
     this._subscriptions = null
-    this._localState.remove()
+    if (this.localState) {
+      this.localState.remove()
+    }
   }
   /**
    * @param {String} name
