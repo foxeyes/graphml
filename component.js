@@ -13,15 +13,15 @@ class Component extends HTMLElement {
     }
   }
   get localState() {
-    return this._localState
+    return this._localState || StateMngr.getLocalState(this)
   }
   localSub(path, callback) {
-    let sub = this._localState.sub(path, callback)
+    let sub = this.localState.sub(path, callback)
     this._subscriptions.add(sub)
     return sub
   }
   localPub(path, val) {
-    this._localState.pub(path, val)
+    this.localState.pub(path, val)
   }
   globalSub(path, callback) {
     let sub = StateMngr.global.sub(path, callback)
