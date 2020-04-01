@@ -45,6 +45,24 @@ class Component extends HTMLElement {
     }
   }
   /**
+   * @param {Array<String>} arr
+   */
+  static set logicAttributes(arr) {
+    if (arr.length) {
+      Object.defineProperty(this, 'observedAttributes', {
+        get: () => {
+          return [...arr]
+        },
+      })
+    }
+  }
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (newVal === oldVal) {
+      return
+    }
+    this[name] = newVal
+  }
+  /**
    * @param {String} name
    */
   static set is(name) {
