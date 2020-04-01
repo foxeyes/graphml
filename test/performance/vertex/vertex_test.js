@@ -1,4 +1,4 @@
-import {renderLit} from '../../../graph-ml.js'
+import {renderLit} from '../../../render.js'
 const SIZE = 500
 const STARTED = performance.now()
 const px = 'uploadcare_'

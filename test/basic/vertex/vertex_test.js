@@ -1,4 +1,4 @@
-import {renderLit, renderStruct} from '../../../graph-ml.js'
+import {renderLit, renderStruct} from '../../../render.js'
 
 const my_component = function(name, secondName) {
   return renderLit( /*html*/ `<div>${name} ${secondName}</div>`)

@@ -1,4 +1,4 @@
-import {renderStruct} from '../../../graph-ml.js'
+import {renderStruct} from '../../../render.js'
 const SIZE = 500
 const STARTED = performance.now()
 const px = 'uploadcare_';
