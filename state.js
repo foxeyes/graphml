@@ -9,8 +9,8 @@ export class State {
    */
   constructor(src) {
     this.uid = UID.generate();
-    this.element=src.element || null;
-    this.store=JSON.parse(JSON.stringify(src.schema));
+    this.element = src.element || null;
+    this.store = JSON.parse(JSON.stringify(src.schema));
     /** @type {Object.<String, Set<Function>>} */
     this.callbackMap = Object.create(null);
   }
@@ -29,7 +29,7 @@ export class State {
    * @param {String} prop
    */
   read(prop) {
-    if (this.store[prop]===undefined) {
+    if (this.store[prop] === undefined) {
       this._warn('read', prop);
       return;
     }
@@ -42,11 +42,11 @@ export class State {
    * @param {*} val
    */
   pub(prop, val) {
-    if (this.store[prop]===undefined) {
+    if (this.store[prop] === undefined) {
       this._warn('publish', prop);
       return;
     }
-    this.store[prop]=val
+    this.store[prop] = val
     if (this.callbackMap[prop]) {
       this.callbackMap[prop].forEach((callback) => {
         callback(this.store[prop]);
@@ -95,7 +95,7 @@ export class StateMngr {
    * @param {Object.<string, *>} schema
    */
   static registerLocal(element, schema) {
-    let state=new State({
+    let state = new State({
       element: element,
       schema: schema,
     });
@@ -109,7 +109,7 @@ export class StateMngr {
   * @param {Object.<string, *>} schema
   */
   static registerGlobal(schema) {
-    let state=new State({
+    let state = new State({
       element: null,
       schema: schema,
     })
@@ -125,9 +125,9 @@ export class StateMngr {
    */
   static getLocalState(element) {
     let el=element
-    while (el&&!el[this.uidKey]) {
+    while (el && !el[this.uidKey]) {
       // @ts-ignore
-      el=el.parentNode||el.parentElement||el.host;
+      el = el.parentNode || el.parentElement || el.host;
     }
     if (el) {
       return this.globalStore[el[this.uidKey]];

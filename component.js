@@ -17,7 +17,7 @@ class Component extends HTMLElement {
   }
   localSub(path, callback) {
     let sub = this.localState.sub(path, callback)
-    this._subscriptions.add(sub)
+    this.__subscriptions.add(sub)
     return sub
   }
   localPub(path, val) {
@@ -25,7 +25,7 @@ class Component extends HTMLElement {
   }
   globalSub(path, callback) {
     let sub = StateMngr.global.sub(path, callback)
-    this._subscriptions.add(sub)
+    this.__subscriptions.add(sub)
     return sub
   }
   globalPub(path, val) {
@@ -33,13 +33,13 @@ class Component extends HTMLElement {
   }
   constructor() {
     super()
-    this._subscriptions = new Set()
+    this.__subscriptions = new Set()
   }
   disconnectedCallback() {
-    this._subscriptions.forEach((sub) => {
+    this.__subscriptions.forEach((sub) => {
       sub.remove()
     });
-    this._subscriptions = null
+    this.__subscriptions = null
     if (this.localState) {
       this.localState.remove()
     }
