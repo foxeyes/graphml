@@ -1,31 +1,3 @@
-const gLifecycleKey = '__g-lifecycle-key__';
-class GLifeCycleEmitter extends HTMLElement {
-  connectedCallback() {
-    // @ts-ignore
-    let host = this.parentNode.host;
-    host[gLifecycleKey] && host[gLifecycleKey].connected && host[gLifecycleKey].connected(host);
-  }
-  disconnectedCallback() {
-    // @ts-ignore
-    let host = this.parentNode.host;
-    host[gLifecycleKey] && host[gLifecycleKey].disconnected && host[gLifecycleKey].disconnected(host);
-  }
-}
-const toKebab = function(str) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-};
-const prepRoot = function(element) {
-  if (!element.shadowRoot) {
-    element.attachShadow({
-      mode: 'open',
-    });
-  }
-}
-const prepSlot = function(element) {
-  if (!element.shadowRoot.querySelector('slot')) {
-    element.shadowRoot.appendChild(document.createElement('slot'));
-  }
-}
 /**
  *
  * @param {Array<{} | String | DocumentFragment>} template
@@ -42,21 +14,27 @@ function renderStruct(template) {
     } else if (node.constructor === String) {
       targetNode.appendChild(document.createTextNode(node));
     } else if (node.constructor === Object) {
-      let element = document.createElement(node.t||'div');
+      let element = document.createElement(node.t || 'div');
       if (node.s) {
         let shadowStyleEl;
         for (let styleProp in node.s) {
           let value=node.s[styleProp];
           if (value.constructor === Object) {
-            prepRoot(element);
+            if (!element.shadowRoot) {
+              element.attachShadow({
+                mode: 'open',
+              })
+            }
             if (!shadowStyleEl) {
               shadowStyleEl=document.createElement('style');
               element.shadowRoot.appendChild(shadowStyleEl);
             }
-            prepSlot(element);
-            let rules=[];
+            if (!element.shadowRoot.querySelector('slot')) {
+              element.shadowRoot.appendChild(document.createElement('slot'))
+            }
+            let rules = [];
             for (let sProp in value) {
-              rules.push(`${toKebab(sProp)}:${value[sProp]}!important;`);
+              rules.push(`${sProp.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}:${value[sProp]}!important;`);
             }
             if (styleProp.indexOf('::') === 0) {
               shadowStyleEl.textContent+=`:host${styleProp}{${rules.join('')}}`;
@@ -92,18 +70,6 @@ function renderStruct(template) {
       if (node.f) {
         node.f(element);
       }
-      if (node.l && Object.keys(node.l).length) {
-        element[gLifecycleKey] = node.l;
-        let wcName = 'g-lifecycle-emmitter';
-        if (!window.customElements.get(wcName)) {
-          window.customElements.define(wcName, GLifeCycleEmitter);
-        }
-        prepRoot(element);
-        prepSlot(element);
-        let emitter = new GLifeCycleEmitter();
-        emitter.style.display = 'none';
-        element.shadowRoot.appendChild(emitter);
-      }
     }
   };
   let fragment = document.createDocumentFragment();
@@ -118,7 +84,7 @@ function renderStruct(template) {
  * @param {Object.<string, Function>} [mapper]
  */
 function renderLit(tplStr, mapper) {
-  let tpl=document.createElement('template');
+  let tpl = document.createElement('template');
   tpl.innerHTML = tplStr;
   let fragment = tpl.content.cloneNode(true);
   if (mapper) {
@@ -133,4 +99,4 @@ function renderLit(tplStr, mapper) {
   }
   return fragment;
 }
-export {renderStruct, renderLit}
+export {renderStruct, renderLit};

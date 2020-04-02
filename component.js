@@ -1,12 +1,6 @@
 import {renderStruct, renderLit} from './render.js'
 import {StateMngr} from './state.js'
 class Component extends HTMLElement {
-  /**
-   * @param {DocumentFragment} tpl
-   */
-  static set template(tpl) {
-    this._template = tpl
-  }
   setLocalStateScheme(scheme) {
     if (!this._localState) {
       this._localState = StateMngr.registerLocal(this, scheme)

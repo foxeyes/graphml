@@ -79,6 +79,7 @@ export class State {
 
   remove() {
     delete StateMngr.globalStore[this.uid];
+    this.callbackMap = null;
   }
 
 }
@@ -132,7 +133,6 @@ export class StateMngr {
     if (el) {
       return this.globalStore[el[this.uidKey]];
     } else {
-      console.warn(`(GState) Cannot find local state for ${element}`);
       return null;
     }
   }
