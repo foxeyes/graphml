@@ -1,4 +1,4 @@
-import {renderStruct, renderLit} from './render.js'
+import {LitTpl, renderStruct, renderLit} from './render.js'
 import {StateMngr} from './state.js'
 class Component extends HTMLElement {
   setLocalStateScheme(scheme) {
@@ -8,6 +8,9 @@ class Component extends HTMLElement {
   }
   get localState() {
     return this._localState || StateMngr.getLocalState(this) || StateMngr.global
+  }
+  get globalState() {
+    return StateMngr.global
   }
   localSub(path, callback) {
     let sub = this.localState.sub(path, callback)
@@ -29,10 +32,17 @@ class Component extends HTMLElement {
     super()
     this.__subscriptions = new Set()
   }
+  connectedCallback() {
+    // @ts-ignore
+    if (this.constructor.__litTpl) {
+      // @ts-ignore
+      this.appendChild(this.constructor.__litTpl.clone)
+    }
+  }
   disconnectedCallback() {
     this.__subscriptions.forEach((sub) => {
       sub.remove()
-    });
+    })
     this.__subscriptions = null
     if (this.localState) {
       this.localState.remove()
@@ -68,6 +78,9 @@ class Component extends HTMLElement {
   }
   static get is() {
     return this.__is
+  }
+  static set template(tplStr) {
+    this.__litTpl = new LitTpl(tplStr)
   }
 }
 export {Component, renderStruct, renderLit}

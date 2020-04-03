@@ -1,5 +1,42 @@
 /**
  *
+ * @param {HTMLElement} element
+ * @param {Object.<string, any>} styles
+ */
+function applyStyles(element, styles) {
+  let shadowStyleEl;
+  for (let styleProp in styles) {
+    let value = styles[styleProp];
+    if (value.constructor === Object) {
+      if (!element.shadowRoot) {
+        element.attachShadow({
+          mode: 'open',
+        });
+      }
+      if (!shadowStyleEl) {
+        shadowStyleEl=document.createElement('style');
+        element.shadowRoot.appendChild(shadowStyleEl);
+      }
+      if (!element.shadowRoot.querySelector('slot')) {
+        element.shadowRoot.appendChild(document.createElement('slot'));
+      }
+      let rules = [];
+      for (let sProp in value) {
+        rules.push(`${sProp.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}:${value[sProp]}!important;`);
+      }
+      if (styleProp.indexOf('::') === 0) {
+        shadowStyleEl.textContent+=`:host${styleProp}{${rules.join('')}}`;
+      } else {
+        shadowStyleEl.textContent+=`:host(${styleProp}){${rules.join('')}}`;
+      }
+    } else {
+      element.style[styleProp] = value;
+    }
+  }
+}
+
+/**
+ *
  * @param {Array<{} | String | DocumentFragment>} template
  */
 function renderStruct(template) {
@@ -16,35 +53,7 @@ function renderStruct(template) {
     } else if (node.constructor === Object) {
       let element = document.createElement(node.t || 'div');
       if (node.s) {
-        let shadowStyleEl;
-        for (let styleProp in node.s) {
-          let value=node.s[styleProp];
-          if (value.constructor === Object) {
-            if (!element.shadowRoot) {
-              element.attachShadow({
-                mode: 'open',
-              })
-            }
-            if (!shadowStyleEl) {
-              shadowStyleEl=document.createElement('style');
-              element.shadowRoot.appendChild(shadowStyleEl);
-            }
-            if (!element.shadowRoot.querySelector('slot')) {
-              element.shadowRoot.appendChild(document.createElement('slot'))
-            }
-            let rules = [];
-            for (let sProp in value) {
-              rules.push(`${sProp.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}:${value[sProp]}!important;`);
-            }
-            if (styleProp.indexOf('::') === 0) {
-              shadowStyleEl.textContent+=`:host${styleProp}{${rules.join('')}}`;
-            } else {
-              shadowStyleEl.textContent+=`:host(${styleProp}){${rules.join('')}}`;
-            }
-          } else {
-            element.style[styleProp] = value;
-          }
-        }
+        applyStyles(element, node.s);
       }
       if (node.p) {
         for (let param in node.p) {
@@ -78,15 +87,28 @@ function renderStruct(template) {
   });
   return fragment;
 }
+
+class LitTpl {
+  /**
+   *
+   * @param {String} tplStr
+   */
+  constructor(tplStr) {
+    this._tpl = document.createElement('template');
+    this._tpl.innerHTML = tplStr;
+  }
+  get clone() {
+    return this._tpl.content.cloneNode(true);
+  }
+}
+
 /**
  *
  * @param {String} tplStr
  * @param {Object.<string, Function>} [mapper]
  */
 function renderLit(tplStr, mapper) {
-  let tpl = document.createElement('template');
-  tpl.innerHTML = tplStr;
-  let fragment = tpl.content.cloneNode(true);
+  let fragment = new LitTpl(tplStr).clone;
   if (mapper) {
     for (let id in mapper) {
       // @ts-ignore
@@ -99,4 +121,5 @@ function renderLit(tplStr, mapper) {
   }
   return fragment;
 }
-export {renderStruct, renderLit};
+
+export {LitTpl, renderStruct, renderLit, applyStyles};

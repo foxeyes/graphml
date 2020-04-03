@@ -79,7 +79,6 @@ export class State {
 
   remove() {
     delete StateMngr.globalStore[this.uid];
-    this.callbackMap = null;
   }
 
 }
