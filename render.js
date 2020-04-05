@@ -88,17 +88,30 @@ function renderStruct(template) {
   return fragment;
 }
 
-class LitTpl {
+class Tpl {
   /**
    *
-   * @param {String} tplStr
+   * @param {String | Array<String | DocumentFragment | {}>} tpl
    */
-  constructor(tplStr) {
+  constructor(tpl) {
     this._tpl = document.createElement('template');
-    this._tpl.innerHTML = tplStr;
+    if (tpl.constructor === String) {
+      // @ts-ignore
+      this._tpl.innerHTML = tpl;
+    } else if (tpl.constructor === Array) {
+      // @ts-ignore
+      this._tpl.appendChild(renderStruct(tpl));
+    }
   }
   get clone() {
-    return this._tpl.content.cloneNode(true);
+    let fragment = this._tpl.content.cloneNode(true);
+    // @ts-ignore
+    [...fragment.querySelectorAll('*')].forEach((el) => {
+      if (el.attached && el.attached.constructor === Function) {
+        el.attached();
+      }
+    })
+    return fragment;
   }
 }
 
@@ -108,7 +121,7 @@ class LitTpl {
  * @param {Object.<string, Function>} [mapper]
  */
 function renderLit(tplStr, mapper) {
-  let fragment = new LitTpl(tplStr).clone;
+  let fragment = new Tpl(tplStr).clone;
   if (mapper) {
     for (let id in mapper) {
       // @ts-ignore
@@ -122,4 +135,4 @@ function renderLit(tplStr, mapper) {
   return fragment;
 }
 
-export {LitTpl, renderStruct, renderLit, applyStyles};
+export {Tpl, renderStruct, renderLit, applyStyles};

@@ -1,5 +1,3 @@
-import {UID} from './uid.js';
-
 export class State {
   /**
    *
@@ -8,7 +6,7 @@ export class State {
    * @param {Object.<string, *>} src.schema
    */
   constructor(src) {
-    this.uid = UID.generate();
+    this.uid = Symbol();
     this.element = src.element || null;
     this.store = JSON.parse(JSON.stringify(src.schema));
     /** @type {Object.<String, Set<Function>>} */
@@ -124,7 +122,7 @@ export class StateMngr {
    * @returns {State}
    */
   static getLocalState(element) {
-    let el=element
+    let el = element
     while (el && !el[this.uidKey]) {
       // @ts-ignore
       el = el.parentNode || el.parentElement || el.host;
