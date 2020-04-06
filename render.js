@@ -100,7 +100,7 @@ class Tpl {
       this._tpl.innerHTML = tpl;
     } else if (tpl.constructor === Array) {
       // @ts-ignore
-      this._tpl.appendChild(renderStruct(tpl));
+      this._tpl.content.appendChild(renderStruct(tpl))
     }
   }
   get clone() {

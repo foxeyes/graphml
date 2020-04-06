@@ -25,10 +25,29 @@ class UserCard extends Component {
     }
   }
 }
-UserCard.template = /*html*/ `
-  <div b-l="textContent:name"></div>
-  <div b-l="textContent:secondName"></div>
-  <div b-l="textContent:age"></div>`
+// UserCard.template = /*html*/ `
+//   <div b-l="textContent:name"></div>
+//   <div b-l="textContent:secondName"></div>
+//   <div b-l="textContent:age"></div>`
+
+UserCard.template = [
+  {
+    a: {
+      'b-l': 'textContent:name',
+    }
+  },
+  {
+    a: {
+      'b-l': 'textContent:secondName',
+    }
+  },
+  {
+    a: {
+      'b-l': 'textContent:age',
+    }
+  },
+]
+
 UserCard.is = 'user-card'
 
 class CommonContainer extends Component {
