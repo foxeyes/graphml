@@ -1,3 +1,15 @@
+function cloneObj(obj) {
+  let clone = (o) => {
+    for (let prop in o) {
+      if (o[prop].constructor === Object) {
+        o[prop] = clone(o[prop]);
+      }
+    }
+    return {...o};
+  }
+  return clone(obj);
+}
+
 export class State {
   /**
    *
@@ -8,7 +20,7 @@ export class State {
   constructor(src) {
     this.uid = Symbol();
     this.element = src.element || null;
-    this.store = JSON.parse(JSON.stringify(src.schema));
+    this.store = cloneObj(src.schema);
     /** @type {Object.<String, Set<Function>>} */
     this.callbackMap = Object.create(null);
   }
