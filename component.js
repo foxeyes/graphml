@@ -60,7 +60,12 @@ class Component extends HTMLElement {
             })
           } else {
             this[sType + 'Sub'](valKey, (val) => {
-              if (propName === 'innerDOM' && val.constructor === DocumentFragment) {
+              if (propName === 'innerTpl' && val.constructor === Tpl) {
+                while (el.firstChild) {
+                  el.firstChild.remove()
+                }
+                el.appendChild(val.clone)
+              } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {
                 while (el.firstChild) {
                   el.firstChild.remove()
                 }
