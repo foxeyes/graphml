@@ -1,4 +1,4 @@
-import {Tpl, renderStruct, renderLit} from './render.js'
+import {Tpl} from './render.js'
 import {StateMngr} from './state.js'
 class Component extends HTMLElement {
   setLocalStateScheme(scheme) {
@@ -35,54 +35,54 @@ class Component extends HTMLElement {
   /**
    *
    * @param {DocumentFragment} fragment
-   * @param {'b-l' | 'b-g'} attr
    */
-  __parseBindings(fragment, attr) {
-    [...fragment.querySelectorAll(`[${attr}]`)].forEach((el) => {
-      let bKey = el.getAttribute(attr)
-      let pairsArr = bKey.split(';')
-      pairsArr.forEach((pair) => {
-        if (!pair) {
-          return
-        }
-        let keyValArr = pair.split(':')
-        let propName = keyValArr[0].trim()
-        let valKey = keyValArr[1].trim()
-        if (propName.indexOf('@') === 0) {
-          let attrName = propName.replace('@', '')
-          if (attr === 'b-l') {
-            this.localSub(valKey, (val) => {
+  __parseFr(fragment) {
+    let stateTypes = {
+      local: 'b-l',
+      global: 'b-g'
+    }
+    for (let sType in stateTypes) {
+      let attr = stateTypes[sType];
+      [...fragment.querySelectorAll(`[${attr}]`)].forEach((el) => {
+        let bKey = el.getAttribute(attr)
+        let pairsArr = bKey.split(';')
+        pairsArr.forEach((pair) => {
+          if (!pair) {
+            return
+          }
+          let keyValArr = pair.split(':')
+          let propName = keyValArr[0].trim()
+          let valKey = keyValArr[1].trim()
+          if (propName.indexOf('@') === 0) {
+            let attrName = propName.replace('@', '')
+            this[sType + 'Sub'](valKey, (val) => {
               el.setAttribute(attrName, val)
             })
           } else {
-            this.globalSub(valKey, (val) => {
-              el.setAttribute(attrName, val)
+            this[sType + 'Sub'](valKey, (val) => {
+              if (propName === 'innerDOM' && val.constructor === DocumentFragment) {
+                while (el.firstChild) {
+                  el.firstChild.remove()
+                }
+                el.appendChild(val)
+              } else {
+                el[propName] = val
+              }
             })
           }
-        } else {
-          if (attr === 'b-l') {
-            this.localSub(valKey, (val) => {
-              el[propName] = val
-            })
-          } else {
-            this.globalSub(valKey, (val) => {
-              el[propName] = val
-            })
-          }
-        }
+        })
+        el.removeAttribute(attr)
       })
-      el.removeAttribute(attr)
-    })
+    }
   }
   attached() {
     this.__attached = true
     // @ts-ignore
-    if (this.constructor.__litTpl) {
+    if (this.constructor.__tpl) {
       /** @type {DocumentFragment} */
       // @ts-ignore
-      let fr = this.constructor.__litTpl.clone
-      this.__parseBindings(fr, 'b-l')
-      this.__parseBindings(fr, 'b-g')
+      let fr = this.constructor.__tpl.clone
+      this.__parseFr(fr)
       this.appendChild(fr)
     }
   }
@@ -103,7 +103,7 @@ class Component extends HTMLElement {
   /**
    * @param {Array<String>} arr
    */
-  static set logicAttributes(arr) {
+  static set attrs(arr) {
     if (arr.length) {
       Object.defineProperty(this, 'observedAttributes', {
         get: () => {
@@ -131,8 +131,8 @@ class Component extends HTMLElement {
   static get is() {
     return this.__is
   }
-  static set template(tplStr) {
-    this.__litTpl = new Tpl(tplStr)
+  static set template(tpl) {
+    this.__tpl = new Tpl(tpl)
   }
 }
-export {Component, renderStruct, renderLit}
+export {Component}
