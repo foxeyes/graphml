@@ -58,6 +58,12 @@ class Component extends HTMLElement {
             this[sType + 'Sub'](valKey, (val) => {
               el.setAttribute(attrName, val)
             })
+          } if (propName.indexOf('$') === 0) {
+            this[sType + 'Sub'](valKey, (fn) => {
+              if (fn && fn.constructor === Function) {
+                fn(el)
+              }
+            })
           } else {
             this[sType + 'Sub'](valKey, (val) => {
               if (propName === 'innerTpl' && val.constructor === Tpl) {
