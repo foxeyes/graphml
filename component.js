@@ -59,9 +59,10 @@ class Component extends HTMLElement {
               el.setAttribute(attrName, val)
             })
           } if (propName.indexOf('$') === 0) {
+            let param = propName.replace('$', '')
             this[sType + 'Sub'](valKey, (fn) => {
               if (fn && fn.constructor === Function) {
-                fn(el)
+                fn(el, param)
               }
             })
           } else {
