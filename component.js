@@ -67,24 +67,19 @@ class Component extends HTMLElement {
             })
           } else {
             this[sType + 'Sub'](valKey, (val) => {
-              let prsAsync = (fr) => {
-                window.setTimeout(() => {
-                  this.__parseFr(fr)
-                })
-              }
               if (propName === 'innerTpl' && val.constructor === Tpl) {
                 while (el.firstChild) {
                   el.firstChild.remove()
                 }
                 let fr = val.clone
+                this.__parseFr(fr)
                 el.appendChild(fr)
-                prsAsync(fr)
               } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {
                 while (el.firstChild) {
                   el.firstChild.remove()
                 }
+                this.__parseFr(val)
                 el.appendChild(val)
-                prsAsync(val)
               } else {
                 el[propName] = val
               }
