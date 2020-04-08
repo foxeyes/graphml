@@ -71,12 +71,15 @@ class Component extends HTMLElement {
                 while (el.firstChild) {
                   el.firstChild.remove()
                 }
-                el.appendChild(val.clone)
+                let fr = val.clone
+                el.appendChild(fr)
+                this.__parseFr(fr)
               } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {
                 while (el.firstChild) {
                   el.firstChild.remove()
                 }
                 el.appendChild(val)
+                this.__parseFr(val)
               } else {
                 el[propName] = val
               }
