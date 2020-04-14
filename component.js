@@ -3,14 +3,11 @@ import {StateMngr} from './state.js'
 class Component extends HTMLElement {
   setLocalStateScheme(scheme) {
     if (!this._localState) {
-      this._localState = StateMngr.registerLocal(this, scheme)
+      this._localState = StateMngr.registerLocalCtx(this, scheme)
     }
   }
   get localState() {
-    return this._localState || StateMngr.getLocalState(this) || StateMngr.global
-  }
-  get globalState() {
-    return StateMngr.global
+    return this._localState || StateMngr.getLocalCtx(this)
   }
   localSub(path, callback) {
     let sub = this.localState.sub(path, callback)
@@ -20,13 +17,13 @@ class Component extends HTMLElement {
   localPub(path, val) {
     this.localState.pub(path, val)
   }
-  globalSub(path, callback) {
-    let sub = StateMngr.global.sub(path, callback)
+  namedSub(ctxName, path, callback) {
+    let sub = StateMngr.getNamedCtx(ctxName).sub(path, callback)
     this.__subscriptions.add(sub)
     return sub
   }
-  globalPub(path, val) {
-    StateMngr.global.pub(path, val)
+  namedPub(ctxName, path, val) {
+    StateMngr.getNamedCtx(ctxName).pub(path, val)
   }
   constructor() {
     super()
@@ -37,58 +34,60 @@ class Component extends HTMLElement {
    * @param {DocumentFragment} fragment
    */
   __parseFr(fragment) {
-    let stateTypes = {
-      local: 'b-l',
-      global: 'b-g'
-    }
-    for (let sType in stateTypes) {
-      let attr = stateTypes[sType];
-      [...fragment.querySelectorAll(`[${attr}]`)].forEach((el) => {
-        let bKey = el.getAttribute(attr)
-        let pairsArr = bKey.split(';')
-        pairsArr.forEach((pair) => {
-          if (!pair) {
-            return
+    [...fragment.querySelectorAll('[bind]')].forEach((el) => {
+      let bKey = el.getAttribute('bind')
+      let pairsArr = bKey.split(';')
+      pairsArr.forEach((pair) => {
+        if (!pair) {
+          return
+        }
+        let keyValArr = pair.split(':')
+        let propName = keyValArr[0].trim()
+        let valKey = keyValArr[1].trim()
+        let sub;
+        if (valKey.indexOf('[') === 0 && valKey.indexOf(']') !== -1) {
+          let ctxName = valKey.split(']')[0].replace('[', '')
+          sub = (path, val) => {
+            this.namedSub(ctxName, path, val)
           }
-          let keyValArr = pair.split(':')
-          let propName = keyValArr[0].trim()
-          let valKey = keyValArr[1].trim()
-          if (propName.indexOf('@') === 0) {
-            let attrName = propName.replace('@', '')
-            this[sType + 'Sub'](valKey, (val) => {
-              el.setAttribute(attrName, val)
-            })
-          } if (propName.indexOf('$') === 0) {
-            let param = propName.replace('$', '')
-            this[sType + 'Sub'](valKey, (fn) => {
-              if (fn && fn.constructor === Function) {
-                fn(el, param)
+        } else {
+          sub = this.localSub
+        }
+        if (propName.indexOf('@') === 0) {
+          let attrName = propName.replace('@', '')
+          sub(valKey, (val) => {
+            el.setAttribute(attrName, val)
+          })
+        } if (propName.indexOf('$') === 0) {
+          let param = propName.replace('$', '')
+          sub(valKey, (fn) => {
+            if (fn && fn.constructor === Function) {
+              fn(el, param)
+            }
+          })
+        } else {
+          sub(valKey, (val) => {
+            if (propName === 'innerTpl' && val.constructor === Tpl) {
+              while (el.firstChild) {
+                el.firstChild.remove()
               }
-            })
-          } else {
-            this[sType + 'Sub'](valKey, (val) => {
-              if (propName === 'innerTpl' && val.constructor === Tpl) {
-                while (el.firstChild) {
-                  el.firstChild.remove()
-                }
-                let fr = val.clone
-                this.__parseFr(fr)
-                el.appendChild(fr)
-              } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {
-                while (el.firstChild) {
-                  el.firstChild.remove()
-                }
-                this.__parseFr(val)
-                el.appendChild(val)
-              } else {
-                el[propName] = val
+              let fr = val.clone
+              this.__parseFr(fr)
+              el.appendChild(fr)
+            } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {
+              while (el.firstChild) {
+                el.firstChild.remove()
               }
-            })
-          }
-        })
-        el.removeAttribute(attr)
+              this.__parseFr(val)
+              el.appendChild(val)
+            } else {
+              el[propName] = val
+            }
+          })
+        }
       })
-    }
+      el.removeAttribute('bind')
+    })
   }
   attached() {
     this.__attached = true

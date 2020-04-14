@@ -15,11 +15,13 @@ export class State {
    *
    * @param {Object} src
    * @param {*} [src.element]
+   * @param {String} [src.name]
    * @param {Object.<string, *>} src.schema
    */
   constructor(src) {
     this.uid = Symbol();
     this.element = src.element || null;
+    this.name = src.name || null;
     this.store = cloneObj(src.schema);
     /** @type {Object.<String, Set<Function>>} */
     this.callbackMap = Object.create(null);
@@ -31,7 +33,7 @@ export class State {
    * @param {String} prop
    */
   _warn(actionName, prop) {
-    console.warn(`(GState) Cannot ${actionName}. Prop name: ` + prop);
+    console.warn(`State: cannot ${actionName}. Prop name: ` + prop);
   }
 
   /**
@@ -95,8 +97,8 @@ export class State {
 
 export class StateMngr {
 
-  static get uidKey() {
-    return '__G_STATE_UID__';
+  static get ctxKey() {
+    return '__CTX_UID__';
   }
 
   /**
@@ -104,28 +106,36 @@ export class StateMngr {
    * @param {*} element
    * @param {Object.<string, *>} schema
    */
-  static registerLocal(element, schema) {
+  static registerLocalCtx(element, schema) {
     let state = new State({
       element: element,
       schema: schema,
     });
     StateMngr.globalStore[state.uid] = state;
-    element[this.uidKey] = state.uid;
+    element[this.ctxKey] = state.uid;
     return state;
   }
 
   /**
   *
+  * @param {String} ctxName
   * @param {Object.<string, *>} schema
   */
-  static registerGlobal(schema) {
+  static registerNamedCtx(ctxName, schema) {
     let state = new State({
-      element: null,
+      name: ctxName,
       schema: schema,
-    })
-    StateMngr.globalStore[state.uid] = state;
-    this.global = state;
-    return state;
+    });
+    if (!StateMngr.globalStore[ctxName]) {
+      StateMngr.globalStore[ctxName] = state;
+      return state;
+    } else {
+      console.warn('State: context name "' + ctxName + '" already in use');
+    }
+  }
+
+  static getNamedCtx(ctxName) {
+    return StateMngr.globalStore[ctxName] || (console.warn('State: wrong context name - "' + ctxName + '"'), null);
   }
 
   /**
@@ -133,17 +143,13 @@ export class StateMngr {
    * @param {*} element
    * @returns {State}
    */
-  static getLocalState(element) {
+  static getLocalCtx(element) {
     let el = element
-    while (el && !el[this.uidKey]) {
+    while (el && !el[this.ctxKey]) {
       // @ts-ignore
       el = el.parentNode || el.parentElement || el.host;
     }
-    if (el) {
-      return this.globalStore[el[this.uidKey]];
-    } else {
-      return null;
-    }
+    return el ? this.globalStore[el[this.ctxKey]] : null;
   }
 
 }
