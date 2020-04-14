@@ -46,7 +46,9 @@ class Component extends HTMLElement {
         let valKey = keyValArr[1].trim()
         let sub;
         if (valKey.indexOf('[') === 0 && valKey.indexOf(']') !== -1) {
-          let ctxName = valKey.split(']')[0].replace('[', '')
+          let valArr = valKey.split(']');
+          let ctxName = valArr[0].replace('[', '')
+          valKey = valArr[1].trim()
           sub = (path, val) => {
             this.namedSub(ctxName, path, val)
           }
