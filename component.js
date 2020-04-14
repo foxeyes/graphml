@@ -53,7 +53,7 @@ class Component extends HTMLElement {
             this.namedSub(ctxName, path, val)
           }
         } else {
-          sub = this.localSub
+          sub = this.localSub.bind(this)
         }
         if (propName.indexOf('@') === 0) {
           let attrName = propName.replace('@', '')
