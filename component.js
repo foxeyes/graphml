@@ -1,6 +1,29 @@
 import {Tpl} from './render.js'
 import {StateMngr} from './state.js'
 class Component extends HTMLElement {
+  /**
+   *
+   * @param {String} propName
+   * @param {Function} handler
+   */
+  defineAccessor(propName, handler) {
+    let localPropName = '__' + propName;
+    if (this[propName] !== undefined) {
+      this[localPropName] = this[propName];
+    }
+    Object.defineProperty(this, propName, {
+      set: (val) => {
+        this[localPropName] = val;
+        handler.bind(this)(val);
+      },
+      get: () => {
+        return this[localPropName];
+      },
+    });
+    if (this[localPropName]) {
+      this[propName] = this[localPropName];
+    }
+  }
   setLocalStateScheme(scheme) {
     if (!this._localState) {
       this._localState = StateMngr.registerLocalCtx(this, scheme)
