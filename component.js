@@ -97,6 +97,7 @@ class Component extends HTMLElement {
                 el.firstChild.remove()
               }
               let fr = val.clone
+              // @ts-ignore
               this.__parseFr(fr)
               el.appendChild(fr)
             } else if (propName === 'innerFragment' && val.constructor === DocumentFragment) {

@@ -49,6 +49,7 @@ function renderStruct(template) {
     if (node.constructor === DocumentFragment) {
       targetNode.appendChild(node);
     } else if (node.constructor === String) {
+      // @ts-ignore
       targetNode.appendChild(document.createTextNode(node));
     } else if (node.constructor === Object) {
       let element = document.createElement(node.t || 'div');
